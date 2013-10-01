@@ -11,6 +11,13 @@ public class WoopraEvent {
 		this.name = eventName;
 	}
 	
+	public WoopraEvent(String eventName, Object[][] properties) {
+		this.name = eventName;
+		for(Object[] keyValue : properties) {
+			this.properties.put((String) keyValue[0], keyValue[1]);
+		}
+	}
+	
 	public WoopraEvent() {}
 	
 	public WoopraEvent setName(String eventName) {

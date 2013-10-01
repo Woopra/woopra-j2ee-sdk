@@ -32,7 +32,7 @@ public class WoopraTracker {
 	private LinkedList<WoopraEvent> events;
 	
 	//User variables
-	private WoopraUser user;
+	private JSONObject user;
 	private boolean userUpToDate;
 	
 	//Is the JS tracker ready?
@@ -130,9 +130,40 @@ public class WoopraTracker {
 		return this;
 	}
 	
+	public WoopraTracker config(Object[][] data) {
+		for(Object[] keyValue : data) {
+			String key = (String) keyValue[0];
+			Object value = keyValue[1];
+			if(WoopraTracker.defaultConfig.has(key)) {
+				if (WoopraTracker.defaultConfig.get(key).getClass() == value.getClass()) {
+					this.currentConfig.put(key, value);
+					if(this.customConfig == null) {
+						this.customConfig = new JSONObject();
+					}
+					this.customConfig.put(key, value);
+				}
+			}
+		}
+		return this;
+	}
 	
-	public WoopraTracker identify(WoopraUser user) {
-		this.user = user;
+	
+	public WoopraTracker identify(String key, String value) {
+		if (this.user == null) {
+			this.user = new JSONObject();
+		}
+		this.user.put(key, value);
+		this.userUpToDate = false;
+		return this;
+	}
+	
+	public WoopraTracker identify(String[][] data) {
+		if (this.user == null) {
+			this.user = new JSONObject();
+		}
+		for(String[] keyValue : data) {
+			this.user.put(keyValue[0], keyValue[1]);
+		}
 		this.userUpToDate = false;
 		return this;
 	}
@@ -172,6 +203,18 @@ public class WoopraTracker {
 			return this;
 		} else {
 			return this.track(event);
+		}
+	}
+	
+	public WoopraTracker track(String name, Object[][] properties) {
+		return this.track(new WoopraEvent(name, properties));
+	}
+	
+	public WoopraTracker track(String name, Object[][] properties, boolean backEndProcessing) {
+		if(backEndProcessing) {
+			return this.track(new WoopraEvent(name, properties), true);
+		} else {
+			return this.track(new WoopraEvent(name, properties));
 		}
 	}
 	
@@ -239,10 +282,10 @@ public class WoopraTracker {
 			String userParams = "";
 			if ( this.user != null ) {
 				@SuppressWarnings("unchecked")
-				Iterator<String> keys = this.user.properties.keys();
+				Iterator<String> keys = this.user.keys();
 				while (keys.hasNext()) {
 					String key = keys.next();
-					String value = this.user.properties.get(key).toString();
+					String value = this.user.get(key).toString();
 					userParams = userParams.concat("&cv_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
 				}
 			}

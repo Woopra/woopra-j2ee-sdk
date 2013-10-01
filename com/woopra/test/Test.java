@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.woopra.java.sdk.WoopraEvent;
 import com.woopra.java.sdk.WoopraTracker;
-import com.woopra.java.sdk.WoopraUser;
 
 public class Test extends HttpServlet {
 	
@@ -19,16 +18,21 @@ public class Test extends HttpServlet {
 	    PrintWriter out;
 	    
 	    
-	    
+	    //Tracker, config, and set cookie
 	    WoopraTracker woopra = new WoopraTracker(request, response);
-	    WoopraUser user = new WoopraUser();
-	    WoopraEvent event = new WoopraEvent();
-	    
-	    user.setProperty("email", "user@test.com");
-	    user.setProperty("name", "Test User");
-	    event.setName("test event");
-	    event.setProperty("prop1", "value1");
+	    woopra.config(new Object[][] {{WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr"}});
 	    woopra.setWoopraCookie();
+	    
+	    //Identify
+	    woopra.identify(new String[][] {
+	        {"name", "Antoine"},
+	        {"email", "antoine@woopra.com"},
+	        {"company", "My Business"}
+	    });
+	    
+	    //Event
+	    WoopraEvent event = new WoopraEvent("test event", new Object[][]{{"prop1", "value1"}, {"prop2", 0}});
+	    
 	    
 		try {
 			out = response.getWriter();
@@ -40,8 +44,7 @@ public class Test extends HttpServlet {
 		    
 		    
 		    //WOOPRA CODE GOES HERE
-		    woopra.config(WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr");
-		    woopra.identify(user);
+		    
 		    woopra.track(event);
 		    woopra.track();
 		    woopra.woopraCode();
