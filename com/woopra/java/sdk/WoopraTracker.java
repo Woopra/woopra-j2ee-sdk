@@ -5,14 +5,15 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.woopra.json.JSONObject;
 
 public class WoopraTracker {
 	
@@ -32,9 +33,26 @@ public class WoopraTracker {
 	private boolean trackerReady;
 	
 	//Configuration Arrays
-	private static Hashtable<String, Object> defaultConfig = new Hashtable<String, Object>(15);
-	private Hashtable<String, Object> currentConfig;
-	private Hashtable<String, Object> customConfig;
+	private static JSONObject defaultConfig = new JSONObject();
+	public JSONObject currentConfig;
+	private JSONObject customConfig;
+	
+	//Configuration KEYS:
+	public static final String DOMAIN = "domain";
+	public static final String COOKIE_NAME = "cookieName";
+	public static final String COOKIE_DOMAIN = "cookieDomain";
+	public static final String COOKIE_PATH = "cookiePath";
+	public static final String PING = "ping";
+	public static final String PING_INTERVAL = "pingInterval";
+	public static final String IDLE_TIMEOUT = "idleTimeout";
+	public static final String DOWNLOAD_TRACKING = "downloadTracking";
+	public static final String OUTGOING_TRACKING = "outgoingTracking";
+	public static final String DOWNLOAD_PAUSE = "downloadPause";
+	public static final String OUTGOING_PAUSE = "outgoingPause";
+	public static final String IGNORE_QUERY_URL = "ignoreQueryUrl";
+	public static final String HIDE_CAMPAIGN = "hideCampaign";
+	public static final String IP_ADDRESS = "ipAddress";
+	public static final String COOKIE_VALUE = "cookieValue";
 
 	
 	//Public Constructor
@@ -80,7 +98,7 @@ public class WoopraTracker {
 		
 		Cookie[] cookies = request.getCookies();
 		for(int i = 0; i < cookies.length; i++) {
-			if(cookies[i].getName() == this.currentConfig.get("cookieName")) {
+			if(cookies[i].getName().equals(this.currentConfig.get("cookieName"))) {
 				this.currentConfig.put("cookieValue", cookies[i].getValue());
 			}
 		}
@@ -91,18 +109,18 @@ public class WoopraTracker {
 		this.userUpToDate = true;
 	}
 	
-	//In java, define setters instead!
-	public WoopraTracker config() {
-		
-		return this;
-	}
 	
-	public WoopraTracker setDomain(String domain) {
-		this.currentConfig.put("domain", domain);
-		if(this.customConfig == null) {
-			this.customConfig = new Hashtable<String, Object>(15);
+	public WoopraTracker config(String key, Object value) {
+		if(WoopraTracker.defaultConfig.has(key)) {
+			if (WoopraTracker.defaultConfig.get(key).getClass() == value.getClass()) {
+				this.currentConfig.put(key, value);
+				if(this.customConfig == null) {
+					this.customConfig = new JSONObject();
+				}
+				this.customConfig.put(key, value);
+			}
 		}
-		this.customConfig.put("domain", domain);
+		
 		return this;
 	}
 	
@@ -114,16 +132,7 @@ public class WoopraTracker {
 	}
 	
 	public WoopraTracker track() {
-		if(this.trackerReady && this.out != null) {
-			this.out.println("   <script>");
-			this.printJavaScriptConfiguration();
-			this.printJavaScriptIndentification();
-			this.out.println("      woopra.track();");
-			this.out.println("   </script>");
-		} else {
-			this.events.add(new WoopraEvent());
-		}
-		return this;
+		return this.track(new WoopraEvent());
 	}
 	
 	public WoopraTracker track(boolean backEndProcessing) {
@@ -142,9 +151,11 @@ public class WoopraTracker {
 		}
 		this.events.add(event);
 		if(this.trackerReady && this.out != null) {
+			this.out.println("   <script>");
 			this.printJavaScriptConfiguration();
 			this.printJavaScriptIndentification();
 			this.printJavaScriptEvents();
+			this.out.println("   </script>");
 		}
 		return this;
 	}
@@ -181,20 +192,7 @@ public class WoopraTracker {
 	
 	private void printJavaScriptConfiguration() {
 		if(this.customConfig != null) {
-			String JSarray = "{";
-			for (Enumeration<String> e = this.customConfig.keys(); e.hasMoreElements();) {
-				String key = (String) e.nextElement();
-				Object value = this.customConfig.get(key);
-				String stringValue = new String();
-				if(value instanceof String) {
-					stringValue = "'".concat((String) value).concat("'");
-				} else {
-					stringValue = value.toString();
-				}
-				JSarray = JSarray.concat("'").concat(key).concat("' : ").concat(stringValue).concat(", ");
-			}
-			JSarray = JSarray.concat("}");
-			this.out.println("      woopra.config(".concat(JSarray).concat(");"));
+			this.out.println("      woopra.config(".concat(this.customConfig.toString()).concat(");"));
 			this.customConfig = null;
 		}
 		
@@ -202,7 +200,7 @@ public class WoopraTracker {
 	
 	private void printJavaScriptIndentification() {
 		if(!this.userUpToDate) {
-			out.println("      woopra.identify(".concat(this.user.toJavaScriptArray()).concat(");"));
+			out.println("      woopra.identify(".concat(this.user.toString()).concat(");"));
 			this.userUpToDate = true;
 		}
 		
@@ -211,14 +209,14 @@ public class WoopraTracker {
 	private void printJavaScriptEvents() {
 		if(this.events != null) {
 			for(WoopraEvent event : this.events){
-				   if(event.name == null) {
-					   this.out.println("      woopra.track();");
-				   } else {
-					   this.out.println("      woopra.track('".concat(event.name).concat("', ").concat(event.toJavaScriptArray()).concat(");"));
-				   }
-				}
+			   if(event.name == null) {
+				   this.out.println("      woopra.track();");
+			   } else {
+				   this.out.println("      woopra.track('".concat(event.name).concat("', ").concat(event.toString()).concat(");"));
+			   }
+			}
+			this.events = null;
 		}
-		
 	}
 	
 	private void woopraHttpRequest(boolean isTracking, WoopraEvent event) {
@@ -227,16 +225,17 @@ public class WoopraTracker {
 	
 			//Config params
 			String configParams = "?host=".concat(URLEncoder.encode((String) this.currentConfig.get("domain"), "UTF-8"));
-			configParams = configParams.concat("&cookie=").concat(URLEncoder.encode( (String) this.currentConfig.get("cookie_value"), "UTF-8"));
-			configParams = configParams.concat("&ip=").concat(URLEncoder.encode( (String) this.currentConfig.get("ip_address"), "UTF-8"));
-			configParams = configParams.concat("&timeout=").concat(URLEncoder.encode( (String) this.currentConfig.get("idle_timeout"), "UTF-8"));
+			configParams = configParams.concat("&cookie=").concat(URLEncoder.encode( (String) this.currentConfig.get("cookieValue"), "UTF-8"));
+			configParams = configParams.concat("&ip=").concat(URLEncoder.encode( (String) this.currentConfig.get("ipAddress"), "UTF-8"));
+			configParams = configParams.concat("&timeout=").concat(URLEncoder.encode(this.currentConfig.get("idleTimeout").toString(), "UTF-8"));
 	
 			//User params
 			String userParams = "";
 			if ( this.user != null ) {
-				for (Enumeration<?> e = this.user.propertyNames(); e.hasMoreElements();) {
-					String key = (String) e.nextElement();
-					String value = (String) this.user.getProperty(key);
+				Iterator<String> keys = this.user.properties.keys();
+				while (keys.hasNext()) {
+					String key = keys.next();
+					String value = this.user.properties.get(key).toString();
 					userParams = userParams.concat("&cv_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
 				}
 			}
@@ -254,9 +253,10 @@ public class WoopraTracker {
 				String eventParams = "";
 				if ( event.name != null ) {
 					eventParams = eventParams.concat("&ce_name=").concat(URLEncoder.encode(event.name, "UTF-8"));
-					for (Enumeration<?> e = event.propertyNames(); e.hasMoreElements();) {
-						String key = (String) e.nextElement();
-						String value = (String) event.getProperty(key);
+					Iterator<String> keys = event.properties.keys();
+					while (keys.hasNext()) {
+						String key = keys.next();
+						String value = event.properties.get(key).toString();
 						eventParams = eventParams.concat("&ce_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
 					}
 	
@@ -285,12 +285,14 @@ public class WoopraTracker {
 		if (this.out != null) {
 			this.out.println("<!-- Woopra code starts here -->");
 			this.out.println("   <script>");
+			this.out.println("      (function(){\n      var t,i,e,n=window,o=document,a=arguments,s=\"script\",r=[\"config\",\"track\",\"identify\",\"visit\",\"push\",\"call\"],c=function(){var t,i=this;for(i._e=[],t=0;r.length>t;t++)(function(t){i[t]=function(){return i._e.push([t].concat(Array.prototype.slice.call(arguments,0))),i}})(r[t])};for(n._w=n._w||{},t=0;a.length>t;t++)n._w[a[t]]=n[a[t]]=n[a[t]]||new c;i=o.createElement(s),i.async=1,i.src=\"//static.woopra.com/js/w.js\",e=o.getElementsByTagName(s)[0],e.parentNode.insertBefore(i,e)\n      })(\"woopra\");");
 			this.printJavaScriptConfiguration();
 			this.printJavaScriptIndentification();
 			this.printJavaScriptEvents();
 			this.out.println("   </script>");
-			this.out.println("<!-- Woopra code starts here -->");
+			this.out.println("<!-- Woopra code ends here -->");
 		}
+		this.trackerReady = true;
 		return this;
 	}
 	
