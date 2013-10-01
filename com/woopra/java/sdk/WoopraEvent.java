@@ -7,6 +7,12 @@ public class WoopraEvent {
 	public String name;
 	public JSONObject properties = new JSONObject();
 	
+	public WoopraEvent(String eventName) {
+		this.name = eventName;
+	}
+	
+	public WoopraEvent() {}
+	
 	public WoopraEvent setName(String eventName) {
 		this.name = eventName;
 		return this;

@@ -15,6 +15,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.woopra.json.JSONObject;
 
+/**
+ * Woopra Java SDK
+ * This class represents the Java Equivalent of the JavaScript Woopra Object
+ * @author Antoine Chkaiban
+ * @version 2013-09-30
+ */
 public class WoopraTracker {
 	
 	//Request, response and writer
@@ -34,7 +40,7 @@ public class WoopraTracker {
 	
 	//Configuration Arrays
 	private static JSONObject defaultConfig = new JSONObject();
-	public JSONObject currentConfig;
+	private JSONObject currentConfig;
 	private JSONObject customConfig;
 	
 	//Configuration KEYS:
@@ -232,6 +238,7 @@ public class WoopraTracker {
 			//User params
 			String userParams = "";
 			if ( this.user != null ) {
+				@SuppressWarnings("unchecked")
 				Iterator<String> keys = this.user.properties.keys();
 				while (keys.hasNext()) {
 					String key = keys.next();
@@ -253,6 +260,7 @@ public class WoopraTracker {
 				String eventParams = "";
 				if ( event.name != null ) {
 					eventParams = eventParams.concat("&ce_name=").concat(URLEncoder.encode(event.name, "UTF-8"));
+					@SuppressWarnings("unchecked")
 					Iterator<String> keys = event.properties.keys();
 					while (keys.hasNext()) {
 						String key = keys.next();

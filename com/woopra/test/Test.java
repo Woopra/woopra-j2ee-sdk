@@ -40,16 +40,11 @@ public class Test extends HttpServlet {
 		    
 		    
 		    //WOOPRA CODE GOES HERE
-		    out.println(woopra.currentConfig.toString());
 		    woopra.config(WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr");
 		    woopra.identify(user);
 		    woopra.track(event);
 		    woopra.track();
 		    woopra.woopraCode();
-		    woopra.config(WoopraTracker.PING, true);
-		    woopra.identify(user);
-		    woopra.track(true);
-		    woopra.track(event, true);
 		    
 		    
 		    out.println("</head>");
