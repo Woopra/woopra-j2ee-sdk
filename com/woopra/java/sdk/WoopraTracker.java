@@ -100,7 +100,11 @@ public class WoopraTracker {
 		//Set domain, the cookieDomain, and the IP of the client
 		this.currentConfig.put("domain", request.getServerName());
 		this.currentConfig.put("cookieDomain", request.getServerName());
-		this.currentConfig.put("ip_address", request.getRemoteAddr());
+		if(request.getHeader("HTTP_X_FORWARDED_FOR") != null) {
+			this.currentConfig.put("ip_address", request.getHeader("HTTP_X_FORWARDED_FOR"));
+		} else {
+			this.currentConfig.put("ip_address", request.getRemoteAddr());
+		}
 		
 		Cookie[] cookies = request.getCookies();
 		for(int i = 0; i < cookies.length; i++) {
@@ -137,10 +141,20 @@ public class WoopraTracker {
 			if(WoopraTracker.defaultConfig.has(key)) {
 				if (WoopraTracker.defaultConfig.get(key).getClass() == value.getClass()) {
 					this.currentConfig.put(key, value);
-					if(this.customConfig == null) {
-						this.customConfig = new JSONObject();
+					if(! key.equals("ipAddress") && ! key.equals("cookieValue")) {
+						if(this.customConfig == null) {
+							this.customConfig = new JSONObject();
+						}
+						this.customConfig.put(key, value);
 					}
-					this.customConfig.put(key, value);
+					if (key.equals("cookieName")) {
+						Cookie[] cookies = request.getCookies();
+						for(int i = 0; i < cookies.length; i++) {
+							if(cookies[i].getName().equals(this.currentConfig.get("cookieName"))) {
+								this.currentConfig.put("cookieValue", cookies[i].getValue());
+							}
+						}
+					}
 				}
 			}
 		}
@@ -348,7 +362,9 @@ public class WoopraTracker {
 	}
 	
 	public void setWoopraCookie() {
-		response.addCookie(new Cookie( (String) this.currentConfig.get("cookieName"), (String) this.currentConfig.get("cookieValue")));
+		Cookie cookie = new Cookie( (String) this.currentConfig.get("cookieName"), (String) this.currentConfig.get("cookieValue"));
+		cookie.setMaxAge(60*60*24*365*2);
+		response.addCookie(cookie);
 	}
 	
 	private static String randomCookie() {
