@@ -7,7 +7,7 @@ WoopraTracker woopra = new WoopraTracker(request, response);
 woopra.config(WoopraTracker.DOMAIN, "mybusiness.com");
 ```
 
-You can update your idle timeout (default: 30 seconds) by updating the timeout property in your <code>WoopraTracker</code> instance (NB: this could also have been done in the step above, by adding all the properties you wish to configure to the array):
+You can update your idle timeout (default: 30 seconds) by updating the timeout property in your <code>WoopraTracker</code> instance:
 
 ``` java
 woopra.config(WoopraTracker.IDLE_TIMEOUT, 15000); // in milliseconds
@@ -19,14 +19,24 @@ If you don't want to keep the user online on Woopra when they don't commit any e
 woopra.config(WoopraTracker.PING, false); // default is true
 ```
 
-To add custom visitor properties, you should create an instance of WoopraVisitor, configure it, then pass it to the <code>identify(user)</code> function:
+Configuration could also have been done in one single step, by adding all the properties you wish to configure to a 2D Array:
 
 ``` java
-WoopraUser user = new WoopraUser();
-user.setProperty("name", "User Name");
-user.setProperty("email", "user@company.com");
-user.setProperty("company", "User Business");
-woopra.identify(user);
+woopra.config(new Object[][] {
+   {WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr"},
+   {WoopraTracker.IDLE_TIMEOUT, 15000},
+   {WoopraTracker.PING, false},
+});
+```
+
+To add custom visitor properties, you should pass a 2D Array to the <code>identify(String[][] user)</code> function:
+
+``` java
+woopra.identify(new String[][] {
+   {"name", "Antoine"},
+   {"email", "antoine@woopra.com"},
+   {"company", "My Business"}
+});
 ```
 
 If you wish to track page views, first call <code>track()</code>, and finally calling <code>woopraCode()</code> in your page header will insert the woopra javascript tracker:
@@ -68,6 +78,16 @@ To track a custom event through back-end, just specify the additional parameter 
 
 ``` java
 woopra.track(event, true);
+```
+
+If you prefer, you can also track an event without even having to create a WoopraEvent Object:
+
+``` java
+woopra.track("play", new Object[][] {
+   {"artist", "Dave Brubeck"},
+   {"song", "Take Five"},
+   {"genre", "Jazz"},
+}, true);
 ```
 
 If you identify the user after the last tracking event, don't forget to <code>push()</code> the update to Woopra:
