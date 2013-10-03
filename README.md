@@ -104,9 +104,3 @@ If you're only going to be tracking through the back-end, set the cookie (before
 ``` java
 woopra.setWoopraCookie();
 ```
-
-And to make sure you're sending the user's IP Address, set it manually doing (the default value is <code>request.getRemoteAddr()</code>):
-
-``` java
-woopra.config(WoopraTracker.IP_ADDRESS, "74.125.224.72");
-```
