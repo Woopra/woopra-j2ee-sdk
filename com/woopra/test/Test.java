@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.woopra.java.sdk.WoopraEvent;
 import com.woopra.java.sdk.WoopraTracker;
+import com.woopra.java.sdk.WoopraTrackerEE;
 
 public class Test extends HttpServlet {
 	
@@ -19,19 +20,16 @@ public class Test extends HttpServlet {
 	    
 	    
 	    //Tracker, config, and set cookie
-	    WoopraTracker woopra = new WoopraTracker(request, response);
-	    woopra.config(new Object[][] {{WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr"}});
-	    woopra.setWoopraCookie();
+	    WoopraTrackerEE woopra = new WoopraTrackerEE(request, response);
+	    woopra.config(new Object[][] {{WoopraTrackerEE.DOMAIN, "4ltrophy.campus.ecp.fr", WoopraTrackerEE.IP_ADDRESS, request.getRemoteAddr()}});
+	    //woopra.setWoopraCookie();
 	    
 	    //Identify
-	    woopra.identify(new String[][] {
-	        {"name", "Antoine"},
-	        {"email", "antoine@woopra.com"},
-	        {"company", "My Business"}
-	    });
 	    
 	    //Event
 	    WoopraEvent event = new WoopraEvent("test event", new Object[][]{{"prop1", "value1"}, {"prop2", 0}});
+	    woopra.track(event, true);
+	    
 	    
 	    
 		try {
@@ -45,14 +43,15 @@ public class Test extends HttpServlet {
 		    
 		    //WOOPRA CODE GOES HERE
 		    
-		    woopra.track(event);
-		    woopra.track();
-		    woopra.woopraCode();
+		    //out.println(woopra.woopraCode());
+		    
 		    
 		    
 		    out.println("</head>");
 		    out.println("<body>");
 		    out.println("<p>Ceci est une page générée depuis une servlet.</p>");
+		    out.println(woopra.customConfig);
+		    out.println(woopra.currentConfig);
 		    out.println("</body>");
 		    out.println("</html>");
 		} catch (IOException e) {
