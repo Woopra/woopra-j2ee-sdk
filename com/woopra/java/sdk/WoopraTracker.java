@@ -44,21 +44,22 @@ public class WoopraTracker {
 	private JSONObject customConfig;
 	
 	//Configuration KEYS:
-	public static final String DOMAIN = "domain";
-	public static final String COOKIE_NAME = "cookieName";
-	public static final String COOKIE_DOMAIN = "cookieDomain";
-	public static final String COOKIE_PATH = "cookiePath";
-	public static final String PING = "ping";
-	public static final String PING_INTERVAL = "pingInterval";
-	public static final String IDLE_TIMEOUT = "idleTimeout";
-	public static final String DOWNLOAD_TRACKING = "downloadTracking";
-	public static final String OUTGOING_TRACKING = "outgoingTracking";
-	public static final String DOWNLOAD_PAUSE = "downloadPause";
-	public static final String OUTGOING_PAUSE = "outgoingPause";
-	public static final String IGNORE_QUERY_URL = "ignoreQueryUrl";
-	public static final String HIDE_CAMPAIGN = "hideCampaign";
-	public static final String IP_ADDRESS = "ipAddress";
-	public static final String COOKIE_VALUE = "cookieValue";
+	public static final String 
+                DOMAIN              = "domain",
+                COOKIE_NAME         = "cookieName",
+                COOKIE_DOMAIN       = "cookieDomain",
+                COOKIE_PATH         = "cookiePath",
+                PING                = "ping",
+                PING_INTERVAL       = "pingInterval",
+                IDLE_TIMEOUT        = "idleTimeout",
+                DOWNLOAD_TRACKING   = "downloadTracking",
+                OUTGOING_TRACKING   = "outgoingTracking",
+                DOWNLOAD_PAUSE      = "downloadPause",
+                OUTGOING_PAUSE      = "outgoingPause",
+                IGNORE_QUERY_URL    = "ignoreQueryUrl",
+                HIDE_CAMPAIGN       = "hideCampaign",
+                IP_ADDRESS          = "ipAddress",
+                COOKIE_VALUE        = "cookieValue";
 
 	
 	//Public Constructor
@@ -78,21 +79,21 @@ public class WoopraTracker {
 		this.trackerReady = false;
 		
 		//Set the default Configuration
-		WoopraTracker.defaultConfig.put("domain", "");
-		WoopraTracker.defaultConfig.put("cookieName", "wooTracker");
-		WoopraTracker.defaultConfig.put("cookieDomain", "");
-		WoopraTracker.defaultConfig.put("cookiePath", "/");
-		WoopraTracker.defaultConfig.put("ping", true);
-		WoopraTracker.defaultConfig.put("pingInterval", 12000);
-		WoopraTracker.defaultConfig.put("idleTimeout", 300000);
-		WoopraTracker.defaultConfig.put("downloadTracking", true);
-		WoopraTracker.defaultConfig.put("outgoingTracking", true);
-		WoopraTracker.defaultConfig.put("downloadPause", 200);
-		WoopraTracker.defaultConfig.put("outgoingPause", 400);
-		WoopraTracker.defaultConfig.put("ignoreQueryUrl", true);
-		WoopraTracker.defaultConfig.put("hideCampaign", false);
-		WoopraTracker.defaultConfig.put("ipAddress", "");
-		WoopraTracker.defaultConfig.put("cookieValue", "");
+		WoopraTracker.defaultConfig.put(DOMAIN, "");
+		WoopraTracker.defaultConfig.put(COOKIE_NAME, "wooTracker");
+		WoopraTracker.defaultConfig.put(COOKIE_DOMAIN, "");
+		WoopraTracker.defaultConfig.put(COOKIE_PATH, "/");
+		WoopraTracker.defaultConfig.put(PING, true);
+		WoopraTracker.defaultConfig.put(PING_INTERVAL, 12000);
+		WoopraTracker.defaultConfig.put(IDLE_TIMEOUT, 300000);
+		WoopraTracker.defaultConfig.put(DOWNLOAD_TRACKING, true);
+		WoopraTracker.defaultConfig.put(OUTGOING_TRACKING, true);
+		WoopraTracker.defaultConfig.put(DOWNLOAD_PAUSE, 200);
+		WoopraTracker.defaultConfig.put(OUTGOING_PAUSE, 400);
+		WoopraTracker.defaultConfig.put(IGNORE_QUERY_URL, true);
+		WoopraTracker.defaultConfig.put(HIDE_CAMPAIGN, false);
+		WoopraTracker.defaultConfig.put(IP_ADDRESS, "");
+		WoopraTracker.defaultConfig.put(COOKIE_VALUE, "");
 		
 		//The current configuration is the default
 		this.currentConfig = WoopraTracker.defaultConfig;
