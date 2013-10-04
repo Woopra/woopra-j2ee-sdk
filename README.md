@@ -73,7 +73,7 @@ public class Homepage extends HttpServlet {
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
 and print the woopraCode in your jsp's header:
-``` html
+``` jsp
 <head>
    ...
    <%= request.getAttribute("woopraCode") %>
