@@ -30,9 +30,9 @@ woopra.config(new Object[][] {
 To add custom visitor properties, you should pass a 2D Array to the <code>identify(String[][] user)</code> function:
 ``` java
 woopra.identify(new String[][] {
-   {"name", "Antoine"},
-   {"email", "antoine@woopra.com"},
-   {"company", "My Business"}
+   {"name", "User Name"},
+   {"email", "user@company.com"},
+   {"company", "User Business"}
 });
 ```
 If you wish to identify a user without any tracking event, don't forget to push() the update to Woopra:
@@ -70,7 +70,7 @@ public class Homepage extends HttpServlet {
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
 and print the jsCode in your jsp's header:
-``` html
+``` jsp
 <head>
    ...
    <%= request.getAttribute("jsCode") %>
