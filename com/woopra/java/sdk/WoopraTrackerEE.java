@@ -15,14 +15,12 @@ public class WoopraTrackerEE extends WoopraTracker {
 	
 	//Request, response and writer
 		private HttpServletRequest request;
-		private HttpServletResponse response;
 		
 		//Public Constructor
-		public WoopraTrackerEE(HttpServletRequest request, HttpServletResponse response) {
+		public WoopraTrackerEE(HttpServletRequest request) {
 			
 			//Request, response, and writer
 			this.request = request;
-			this.response = response;
 			
 			//Set domain, the cookieDomain, and the IP of the client
 			this.currentConfig.put(WoopraTrackerEE.DOMAIN, request.getServerName());
@@ -132,7 +130,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 			
 		}
 		
-		public void setWoopraCookie() {
+		public void setWoopraCookie(HttpServletResponse response) {
 			Cookie cookie = new Cookie( (String) this.currentConfig.get("cookieName"), (String) this.currentConfig.get("cookieValue"));
 			cookie.setMaxAge(60*60*24*365*2);
 			response.addCookie(cookie);

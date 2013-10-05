@@ -281,7 +281,7 @@ public class WoopraTracker {
 		
 	}
 	
-	public String woopraCode() {
+	public String jsCode() {
 		String jsCode = "\n";
 		jsCode = jsCode.concat("<!-- Woopra code starts here -->\n");
 		jsCode = jsCode.concat("   <script>\n");
