@@ -5,7 +5,7 @@ The SDK can be used both for front-end and back-end tracking. In either cases, t
 ``` java
 public class Homepage extends HttpServlet {
    public void doGet(HttpServletRequest request, HttpServletResponse response) {
-      WoopraTracker woopra = new WoopraTrackerEE(request, response);
+      WoopraTracker woopra = new WoopraTrackerEE(request);
       woopra.config(WoopraTracker.DOMAIN, "mybusiness.com");
 
       // Your code here...
@@ -51,7 +51,7 @@ You can also track custom events through the front-end or the back-end. With all
 ``` java
 public class Homepage extends HttpServlet {
    public void doGet(HttpServletRequest request, HttpServletResponse response) {
-      WoopraTracker woopra = new WoopraTrackerEE(request, response);
+      WoopraTracker woopra = new WoopraTrackerEE(request);
       woopra.config(WoopraTracker.DOMAIN, "mybusiness.com").identify(user).track();
       // Create an event
       myEvent = new WoopraEvent("play");
@@ -89,3 +89,8 @@ Finally, if you wish to track your users only through the back-end, you should s
 woopra.setWoopraCookie(response)
 // where response is the instance of HttpServletResponse
 ```
+If you are using another Java Web Framework than J2EE, you should use the WoopraTracker class instead of the WoopraTrackerEE class. The constructor of WoopraTracker doesn't require an instance of HttpServletRequest. However, for the tracker to work properly, you should configure manually the domain, the cookieDomain, the cookieValue, and the ipAddress of the user being tracked:
+``` python
+woopra.config({WoopraTracker.DOMAIN:"mywebsite.com", WoopraTracker.COOKIE_DOMAIN:"mywebsite.com", WoopraTracker.COOKIE_VALUE:"COOKIEVALUE", WoopraTracker.IP_ADDRESS:"0.0.0.0"})
+```
+Instead of calling the setWoopraCookie(response) method to set the Woopra cookie on the user's browser, you should set it manually (this step depends on the Java-based Web Framework you are using).
