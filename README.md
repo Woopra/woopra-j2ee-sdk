@@ -10,11 +10,9 @@ public class Homepage extends HttpServlet {
 
       // Your code here...
 
-      // Set the Woopra Cookie before sending any headers
-      woopra.setWoopraCookie();
       // When you're done setting up your WoopraTracker object, set an attribute containing the
-      // value of woopra.woopraCode() among all the other attributes you are passing to the jsp.
-      request.setAttribute("woopraCode", woopra.woopraCode());
+      // value of woopra.jsCode() among all the other attributes you are passing to the jsp.
+      request.setAttribute("jsCode", woopra.jsCode());
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
 You can also customize all the properties of the tracker by repeating that step with different parameters. For example, to also update your idle timeout (default: 30 seconds):
@@ -68,15 +66,14 @@ public class Homepage extends HttpServlet {
 
       //Your code here...
 
-      woopra.setWoopraCookie();
-      request.setAttribute("woopraCode", woopra.woopraCode());
+      request.setAttribute("jsCode", woopra.jsCode());
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
-and print the woopraCode in your jsp's header:
+and print the jsCode in your jsp's header:
 ``` html
 <head>
    ...
-   <%= request.getAttribute("woopraCode") %>
+   <%= request.getAttribute("jsCode") %>
 </head>
 ```
 If you prefer, you can also track an event without even having to create a WoopraEvent Object:
@@ -86,4 +83,9 @@ woopra.track("play", new Object[][] {
    {"song", "Take Five"},
    {"genre", "Jazz"},
 }, true);
+```
+Finally, if you wish to track your users only through the back-end, you should set the cookie on your user's browser. However, if you are planning to also use front-end tracking, don't even bother with that step, the JavaScript tracker will handle it for you.
+``` java
+woopra.setWoopraCookie(response)
+// where response is the instance of HttpServletResponse
 ```
