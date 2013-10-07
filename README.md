@@ -1,6 +1,10 @@
 Track customers directly in the J2EE Web Framework using Woopra's J2EE SDK
 
-The SDK can be used both for front-end and back-end tracking. In either cases, the first step is to setup the tracker SDK in your Servlets. For example, if you want to set up tracking with Woopra on your homepage, the Servlet should look like:
+The purpose of this SDK is to allow our customers who have Java-based servers to track their users by writing only Java code. Tracking directly in Java will allow you to decide whether you want to track your users:
+- through the front-end: after configuring the tracker, identifying the user, and tracking page views and events in Java, the SDK will generate the corresponding JavaScript code, and by passing this code as an attribute of your request (examples will be shown below), you will be able to print that code in your JSP page's header.
+- through the back-end: after configuring the tracker & identifying the user, add the optional parameter true to the methods <code>track</code> or <code>push</code>, and the Java tracker will handle sending the data to Woopra by making HTTP Requests. By doing that, the client is never involved in the tracking process.
+
+The first step is to setup the tracker SDK in your Servlets. For example, if you want to set up tracking with Woopra on your homepage, the Servlet should look like:
 
 ``` java
 public class Homepage extends HttpServlet {
@@ -18,7 +22,7 @@ woopra.config(WoopraTracker.IDLE_TIMEOUT, 15000); // in milliseconds
 Configuration can also be done in one single step, by adding all the properties you wish to configure to a 2D Array:
 ``` java
 woopra.config(new Object[][] {
-   {WoopraTracker.DOMAIN, "4ltrophy.campus.ecp.fr"},
+   {WoopraTracker.DOMAIN, "mybusiness.com"},
    {WoopraTracker.IDLE_TIMEOUT, 15000},
    {WoopraTracker.PING, false},
 });
@@ -64,14 +68,14 @@ public class Homepage extends HttpServlet {
 
       // When you're done setting up your WoopraTracker object, set an attribute containing the
       // value of woopra.jsCode() among all the other attributes you are passing to the jsp:
-      request.setAttribute("jsCode", woopra.jsCode());
+      request.setAttribute("woopraCode", woopra.jsCode());
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
 and print the jsCode in your jsp's header:
 ``` jsp
 <head>
    ...
-   <%= request.getAttribute("jsCode") %>
+   <%= request.getAttribute("woopraCode") %>
 </head>
 ```
 If you prefer, you can also track an event without even having to create a WoopraEvent Object:
@@ -84,15 +88,15 @@ woopra.track("play", new Object[][] {
 ```
 Finally, if you wish to track your users only through the back-end, you should set the cookie on your user's browser. However, if you are planning to also use front-end tracking, don't even bother with that step, the JavaScript tracker will handle it for you.
 ``` java
-request.setAttribute("jsCode", woopra.jsCode());
+request.setAttribute("woopraCode", woopra.jsCode());
 woopra.setWoopraCookie(response);
 this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 // where response is the instance of HttpServletResponse
 ```
 If you are using another Java Web Framework than J2EE, you should use the WoopraTracker class instead of the WoopraTrackerEE class. The constructor of WoopraTracker doesn't require an instance of HttpServletRequest. However, for the tracker to work properly, you should configure manually the domain, the cookieDomain, the cookieValue, and the ipAddress of the user being tracked:
 ``` python
-woopra.config({WoopraTracker.DOMAIN : "mywebsite.com",
-   WoopraTracker.COOKIE_DOMAIN : "mywebsite.com",
+woopra.config({WoopraTracker.DOMAIN : "mybusiness.com",
+   WoopraTracker.COOKIE_DOMAIN : "mybusiness.com",
    WoopraTracker.COOKIE_VALUE : "COOKIEVALUE",
    WoopraTracker.IP_ADDRESS : "0.0.0.0"
 });
