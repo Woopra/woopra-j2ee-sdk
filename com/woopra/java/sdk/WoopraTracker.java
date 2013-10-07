@@ -18,19 +18,19 @@ import com.woopra.sss.test.AsyncClient;
 public class WoopraTracker {
 	
 	//Has the user info been pushed?
-	private boolean hasPushed;
+	protected boolean hasPushed;
 	
 	//Event stack
-	private LinkedList<WoopraEvent> events;
+	protected LinkedList<WoopraEvent> events;
 	
 	//User variables
 	protected JSONObject user;
-	private boolean userUpToDate;
+	protected boolean userUpToDate;
 	
 	//Configuration Arrays
 	protected static JSONObject defaultConfig = new JSONObject();
-	public JSONObject currentConfig;
-	public JSONObject customConfig;
+	protected JSONObject currentConfig;
+	protected JSONObject customConfig;
 	
 	//Configuration KEYS:
 	public static final String DOMAIN = "domain";
