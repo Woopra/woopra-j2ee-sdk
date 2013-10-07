@@ -1,6 +1,5 @@
 package com.woopra.java.sdk;
 
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
@@ -8,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 import com.woopra.json.JSONObject;
+import com.woopra.sss.test.AsyncClient;
 
 /**
  * Woopra Java SDK
@@ -268,11 +268,8 @@ public class WoopraTracker {
 				}
 				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams);
 			}
-			URL obj = new URL(url);
-			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-			// optional default is GET
-			con.setRequestMethod("GET");
-			con.getResponseCode();
+			
+			AsyncClient.getInstance().send(new URL(url));
 
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
