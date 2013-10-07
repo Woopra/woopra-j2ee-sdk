@@ -10,10 +10,6 @@ public class Homepage extends HttpServlet {
 
       // Your code here...
 
-      // When you're done setting up your WoopraTracker object, set an attribute containing the
-      // value of woopra.jsCode() among all the other attributes you are passing to the jsp.
-      request.setAttribute("jsCode", woopra.jsCode());
-      this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
 You can also customize all the properties of the tracker by repeating that step with different parameters. For example, to also update your idle timeout (default: 30 seconds):
 ``` java
@@ -66,6 +62,8 @@ public class Homepage extends HttpServlet {
 
       //Your code here...
 
+      // When you're done setting up your WoopraTracker object, set an attribute containing the
+      // value of woopra.jsCode() among all the other attributes you are passing to the jsp:
       request.setAttribute("jsCode", woopra.jsCode());
       this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 ```
@@ -86,11 +84,17 @@ woopra.track("play", new Object[][] {
 ```
 Finally, if you wish to track your users only through the back-end, you should set the cookie on your user's browser. However, if you are planning to also use front-end tracking, don't even bother with that step, the JavaScript tracker will handle it for you.
 ``` java
-woopra.setWoopraCookie(response)
+request.setAttribute("jsCode", woopra.jsCode());
+woopra.setWoopraCookie(response);
+this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 // where response is the instance of HttpServletResponse
 ```
 If you are using another Java Web Framework than J2EE, you should use the WoopraTracker class instead of the WoopraTrackerEE class. The constructor of WoopraTracker doesn't require an instance of HttpServletRequest. However, for the tracker to work properly, you should configure manually the domain, the cookieDomain, the cookieValue, and the ipAddress of the user being tracked:
 ``` python
-woopra.config({WoopraTracker.DOMAIN:"mywebsite.com", WoopraTracker.COOKIE_DOMAIN:"mywebsite.com", WoopraTracker.COOKIE_VALUE:"COOKIEVALUE", WoopraTracker.IP_ADDRESS:"0.0.0.0"})
+woopra.config({WoopraTracker.DOMAIN : "mywebsite.com",
+   WoopraTracker.COOKIE_DOMAIN : "mywebsite.com",
+   WoopraTracker.COOKIE_VALUE : "COOKIEVALUE",
+   WoopraTracker.IP_ADDRESS : "0.0.0.0"
+});
 ```
 Instead of calling the setWoopraCookie(response) method to set the Woopra cookie on the user's browser, you should set it manually (this step depends on the Java-based Web Framework you are using).
