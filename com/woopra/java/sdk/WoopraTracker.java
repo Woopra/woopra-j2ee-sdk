@@ -33,21 +33,21 @@ public class WoopraTracker {
 	protected JSONObject customConfig;
 	
 	//Configuration KEYS:
-	public static final String DOMAIN = "domain";
-	public static final String COOKIE_NAME = "cookie_name";
-	public static final String COOKIE_DOMAIN = "cookie_domain";
-	public static final String COOKIE_PATH = "cookie_path";
-	public static final String PING = "ping";
-	public static final String PING_INTERVAL = "ping_interval";
-	public static final String IDLE_TIMEOUT = "idle_timeout";
-	public static final String DOWNLOAD_TRACKING = "download_tracking";
-	public static final String OUTGOING_TRACKING = "outgoing_tracking";
-	public static final String DOWNLOAD_PAUSE = "download_pause";
-	public static final String OUTGOING_PAUSE = "outgoing_pause";
-	public static final String IGNORE_QUERY_URL = "ignore_query_url";
-	public static final String HIDE_CAMPAIGN = "hide_campaign";
-	public static final String IP_ADDRESS = "ip_address";
-	public static final String COOKIE_VALUE = "cookie_value";
+	public static final String DOMAIN = "domain",
+            COOKIE_NAME = "cookie_name",
+            COOKIE_DOMAIN = "cookie_domain",
+            COOKIE_PATH = "cookie_path",
+            PING = "ping",
+            PING_INTERVAL = "ping_interval",
+            IDLE_TIMEOUT = "idle_timeout",
+            DOWNLOAD_TRACKING = "download_tracking",
+            OUTGOING_TRACKING = "outgoing_tracking",
+            DOWNLOAD_PAUSE = "download_pause",
+            OUTGOING_PAUSE = "outgoing_pause",
+            IGNORE_QUERY_URL = "ignore_query_url",
+            HIDE_CAMPAIGN = "hide_campaign",
+            IP_ADDRESS = "ip_address",
+            COOKIE_VALUE = "cookie_value";
 
 	
 	//Public Constructor
