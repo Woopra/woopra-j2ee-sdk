@@ -123,7 +123,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 		}
 		
 		public void setWoopraCookie(HttpServletResponse response) {
-			Cookie cookie = new Cookie( (String) this.currentConfig.get("cookieName"), (String) this.currentConfig.get("cookieValue"));
+			Cookie cookie = new Cookie( (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_NAME), (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_VALUE));
 			cookie.setMaxAge(60*60*24*365*2);
 			response.addCookie(cookie);
 		}
