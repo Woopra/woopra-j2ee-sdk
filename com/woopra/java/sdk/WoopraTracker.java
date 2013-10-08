@@ -54,21 +54,22 @@ public class WoopraTracker {
 	public WoopraTracker() {
 		
 		//Set the default Configuration
-		WoopraTracker.defaultConfig.put("domain", "");
-		WoopraTracker.defaultConfig.put("cookie_name", "wooTracker");
-		WoopraTracker.defaultConfig.put("cookie_domain", "");
-		WoopraTracker.defaultConfig.put("cookie_path", "/");
-		WoopraTracker.defaultConfig.put("ping", true);
-		WoopraTracker.defaultConfig.put("ping_interval", 12000);
-		WoopraTracker.defaultConfig.put("idle_timeout", 300000);
-		WoopraTracker.defaultConfig.put("download_tracking", true);
-		WoopraTracker.defaultConfig.put("outgoing_tracking", true);
-		WoopraTracker.defaultConfig.put("download_pause", 200);
-		WoopraTracker.defaultConfig.put("outgoing_pause", 400);
-		WoopraTracker.defaultConfig.put("ignore_query_url", true);
-		WoopraTracker.defaultConfig.put("hide_campaign", false);
-		WoopraTracker.defaultConfig.put("ip_address", "");
-		WoopraTracker.defaultConfig.put("cookie_value", "");
+		WoopraTracker.defaultConfig.put(WoopraTracker.DOMAIN, "");
+	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_NAME, "wooTracker");
+	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_DOMAIN, "");
+	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_PATH, "/");
+	        WoopraTracker.defaultConfig.put(WoopraTracker.PING, true);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.PING_INTERVAL, 12000);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.IDLE_TIMEOUT, 300000);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_TRACKING, true);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_TRACKING, true);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_PAUSE, 200);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_PAUSE, 400);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.IGNORE_QUERY_URL, true);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.HIDE_CAMPAIGN, false);
+	        WoopraTracker.defaultConfig.put(WoopraTracker.IP_ADDRESS, "");
+	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_VALUE, "");
+
 		
 		//The current configuration is the default
 		this.currentConfig = WoopraTracker.defaultConfig;
