@@ -32,7 +32,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 			}
 			
 			Cookie[] cookies = request.getCookies();
-			for(int i = 0; i < cookies.length; i++) {
+			for(int i = 0; cookies != null && i < cookies.length; i++) {
 				if(cookies[i].getName().equals(this.currentConfig.get(WoopraTrackerEE.COOKIE_NAME))) {
 					this.currentConfig.put(WoopraTrackerEE.COOKIE_VALUE, cookies[i].getValue());
 				}
