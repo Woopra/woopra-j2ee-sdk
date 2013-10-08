@@ -23,16 +23,6 @@ import java.util.List;
  */
 public class AsyncClient implements Runnable {
 
-    public static void main(String[] args) throws Exception {
-        AsyncClient c = new AsyncClient();
-
-        for (int i = 0; i < 100; i++) {
-
-            c.send(new URL("http://www.woopra.com/track/ce/?ra=abc&alias=jadyounan.com&cookie=abcd&ce_name=x"));
-            System.out.println("#" + i);
-            Thread.sleep(1000);
-        }
-    }
     public synchronized static AsyncClient getInstance() throws IOException {
     	if (instance == null) {
     		instance = new AsyncClient();
@@ -49,47 +39,34 @@ public class AsyncClient implements Runnable {
 
     private AsyncClient() throws IOException {
         this.selector = SelectorProvider.provider().openSelector();
-
         new Thread(this).start();
     }
 
-    public void send(URL url, String userAgent) throws IOException {
+    public void send(URL url, String[] headers) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(("GET " + url.getFile() + " HTTP/1.1").getBytes());
         baos.write("\r\n".getBytes());
         baos.write("Host: woopra.com".getBytes());
         baos.write("\r\n".getBytes());
-        if (userAgent != null) {
-        	baos.write(("User-Agent: ".concat(userAgent)).getBytes());
+    	for(int i = 0; headers != null && i < headers.length; i++) {
+    		baos.write(headers[i].getBytes());
         	baos.write("\r\n".getBytes());
-        }
-        baos.write("\r\n".getBytes());
-
+    	}
+    	baos.write("\r\n".getBytes());
         baos.flush();
         byte bytes[] = baos.toByteArray();
         baos.close();
-
         send(bytes);
-
-    }
-    
-    public void send(URL url) throws IOException {
-    	this.send(url, null);
     }
 
     @SuppressWarnings("unchecked")
 	void send(byte[] data) throws IOException {
-
-
         SocketChannel socketChannel = SocketChannel.open();
         socketChannel.configureBlocking(false);
-
         socketChannel.connect(new InetSocketAddress(this.ip, this.port));
-
         synchronized(this.changeList) {
             this.changeList.add(new Request(socketChannel, SelectionKey.OP_CONNECT, data));
         }
-
         this.selector.wakeup();
     }
 
@@ -102,7 +79,6 @@ public class AsyncClient implements Runnable {
                     Iterator changes = this.changeList.iterator();
                     while (changes.hasNext()) {
                         Request change = (Request) changes.next();
-
                         switch (change.type) {
                             case SelectionKey.OP_CONNECT:
                                 change.channel.register(this.selector, change.type);
@@ -112,49 +88,33 @@ public class AsyncClient implements Runnable {
                     }
                     this.changeList.clear();
                 }
-
                 this.selector.select();
-
                 Iterator selectedKeys = this.selector.selectedKeys().iterator();
                 while (selectedKeys.hasNext()) {
                     SelectionKey key = (SelectionKey) selectedKeys.next();
                     selectedKeys.remove();
-
                     if (!key.isValid()) {
                         continue;
                     }
-
                     if (key.isConnectable()) {
-
                         SocketChannel socketChannel = (SocketChannel) key.channel();
-
                         try {
                             socketChannel.finishConnect();
                         } catch (IOException e) {
                             key.cancel();
                             return;
                         }
-
                         key.interestOps(SelectionKey.OP_WRITE);
-
                     } else if (key.isReadable()) {
-
                         key.channel().close();
-
                         key.cancel();
-
                     } else if (key.isWritable()) {
-
                         ByteBuffer buf = (ByteBuffer) key.attachment();
-
                         ((SocketChannel) key.channel()).write(buf);
-
                         if (buf.remaining() > 0) {
                             break;
                         }
-
                         key.interestOps(SelectionKey.OP_READ);
-
                     }
                 }
             } catch (Exception e) {
@@ -165,11 +125,10 @@ public class AsyncClient implements Runnable {
 }
 
 class Request {
-
+	
     public SocketChannel channel;
     public int type;
     public ByteBuffer attachment;
-
     public Request(SocketChannel channel, int type, byte[] attachmentBytes) {
         this.channel = channel;
         this.type = type;
