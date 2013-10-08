@@ -114,7 +114,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 					}
 					url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams);
 				}
-				AsyncClient.getInstance().send(new URL(url));
+				AsyncClient.getInstance().send(new URL(url), request.getHeader("User-Agent"));
 			} catch(Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
