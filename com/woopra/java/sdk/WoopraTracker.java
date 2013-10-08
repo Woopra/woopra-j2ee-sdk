@@ -16,23 +16,14 @@ import com.woopra.sss.test.AsyncClient;
  * @version 2013-09-30
  */
 public class WoopraTracker {
-	
-	//Has the user info been pushed?
+
 	protected boolean hasPushed;
-	
-	//Event stack
 	protected LinkedList<WoopraEvent> events;
-	
-	//User variables
 	protected JSONObject user;
 	protected boolean userUpToDate;
-	
-	//Configuration Arrays
-	protected static JSONObject defaultConfig = new JSONObject();
+	protected static JSONObject defaultConfig;
 	protected JSONObject currentConfig;
 	protected JSONObject customConfig;
-	
-	//Configuration KEYS:
 	public static final String DOMAIN = "domain",
             COOKIE_NAME = "cookie_name",
             COOKIE_DOMAIN = "cookie_domain",
@@ -47,54 +38,53 @@ public class WoopraTracker {
             IGNORE_QUERY_URL = "ignore_query_url",
             HIDE_CAMPAIGN = "hide_campaign",
             IP_ADDRESS = "ip_address",
-            COOKIE_VALUE = "cookie_value";
-
+            COOKIE_VALUE = "cookie_value",
+            USER_AGENT = "user_agent",
+            CURRENT_URL = "current_url";
 	
-	//Public Constructor
-	public WoopraTracker() {
-		
-		//Set the default Configuration
+	static {
+		WoopraTracker.defaultConfig = new JSONObject();
 		WoopraTracker.defaultConfig.put(WoopraTracker.DOMAIN, "");
-	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_NAME, "wooTracker");
-	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_DOMAIN, "");
-	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_PATH, "/");
-	        WoopraTracker.defaultConfig.put(WoopraTracker.PING, true);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.PING_INTERVAL, 12000);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.IDLE_TIMEOUT, 300000);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_TRACKING, true);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_TRACKING, true);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_PAUSE, 200);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_PAUSE, 400);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.IGNORE_QUERY_URL, true);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.HIDE_CAMPAIGN, false);
-	        WoopraTracker.defaultConfig.put(WoopraTracker.IP_ADDRESS, "");
-	        WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_VALUE, "");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_NAME, "wooTracker");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_DOMAIN, "");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_PATH, "/");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.PING, true);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.PING_INTERVAL, 12000);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.IDLE_TIMEOUT, 300000);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_TRACKING, true);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_TRACKING, true);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.DOWNLOAD_PAUSE, 200);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.OUTGOING_PAUSE, 400);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.IGNORE_QUERY_URL, true);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.HIDE_CAMPAIGN, false);
+	    WoopraTracker.defaultConfig.put(WoopraTracker.IP_ADDRESS, "");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.COOKIE_VALUE, "");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.USER_AGENT, "");
+	    WoopraTracker.defaultConfig.put(WoopraTracker.CURRENT_URL, "");
+    }
 
-		
-		//The current configuration is the default
+	public WoopraTracker() {
 		this.currentConfig = WoopraTracker.defaultConfig;
-		
-		//User is up to date
 		this.userUpToDate = true;
-		
-		//The user info hasn't been pushed yet
+		this.user = new JSONObject();
 		this.hasPushed = false;
 	}
-	
 	
 	public WoopraTracker config(String key, Object value) {
 		if(WoopraTracker.defaultConfig.has(key)) {
 			if (WoopraTracker.defaultConfig.get(key).getClass() == value.getClass()) {
 				this.currentConfig.put(key, value);
-				if(! key.equals(WoopraTracker.IP_ADDRESS) && ! key.equals(WoopraTracker.COOKIE_VALUE)) {
+				if(! key.equals(WoopraTracker.IP_ADDRESS) && ! key.equals(WoopraTracker.COOKIE_VALUE) && ! key.equals(WoopraTracker.USER_AGENT) && ! key.equals(WoopraTracker.CURRENT_URL)) {
 					if(this.customConfig == null) {
 						this.customConfig = new JSONObject();
 					}
 					this.customConfig.put(key, value);
+					if (key.equals(WoopraTrackerEE.COOKIE_NAME)) {
+						this.actualizeCookie();
+					}
 				}
 			}
 		}
-		
 		return this;
 	}
 	
@@ -107,20 +97,13 @@ public class WoopraTracker {
 		return this;
 	}
 	
-	
 	public WoopraTracker identify(String key, String value) {
-		if (this.user == null) {
-			this.user = new JSONObject();
-		}
 		this.user.put(key, value);
 		this.userUpToDate = false;
 		return this;
 	}
 	
 	public WoopraTracker identify(String[][] data) {
-		if (this.user == null) {
-			this.user = new JSONObject();
-		}
 		for(String[] keyValue : data) {
 			this.user.put(keyValue[0], keyValue[1]);
 		}
@@ -134,7 +117,7 @@ public class WoopraTracker {
 	
 	public WoopraTracker track(boolean backEndProcessing) {
 		if(backEndProcessing) {
-			this.woopraHttpRequest(true, new WoopraEvent());
+			this.woopraHttpRequest(true, new WoopraEvent(), new String[] {"User-Agent: ".concat(this.currentConfig.getString(WoopraTracker.USER_AGENT))});
 			
 			return this;
 		} else {
@@ -152,7 +135,7 @@ public class WoopraTracker {
 	
 	public WoopraTracker track(WoopraEvent event, boolean backEndProcessing) {
 		if(backEndProcessing) {
-			this.woopraHttpRequest(true, event);
+			this.woopraHttpRequest(true, event, new String[] {"User-Agent: ".concat(this.currentConfig.getString(WoopraTracker.USER_AGENT))});
 			return this;
 		} else {
 			return this.track(event);
@@ -171,7 +154,6 @@ public class WoopraTracker {
 		}
 	}
 	
-	
 	public void push() {
 		if(!this.userUpToDate) {
 			this.hasPushed = true;
@@ -181,7 +163,7 @@ public class WoopraTracker {
 	public void push(boolean backEndProcessing) {
 		if(backEndProcessing) {
 			
-			this.woopraHttpRequest(false, new WoopraEvent());
+			this.woopraHttpRequest(false, new WoopraEvent(), new String[] {"User-Agent: ".concat(this.currentConfig.getString(WoopraTracker.USER_AGENT))});
 			
 		} else {
 			this.push();
@@ -221,7 +203,7 @@ public class WoopraTracker {
 		return jsEvents;
 	}
 	
-	protected void woopraHttpRequest(boolean isTracking, WoopraEvent event) {
+	private void woopraHttpRequest(boolean isTracking, WoopraEvent event, String[] headers) {
 		try {
 			String baseUrl = "http://www.woopra.com/track/";
 	
@@ -233,14 +215,12 @@ public class WoopraTracker {
 	
 			//User params
 			String userParams = "";
-			if ( this.user != null ) {
-				@SuppressWarnings("unchecked")
-				Iterator<String> keys = this.user.keys();
-				while (keys.hasNext()) {
-					String key = keys.next();
-					String value = this.user.get(key).toString();
-					userParams = userParams.concat("&cv_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
-				}
+			@SuppressWarnings("unchecked")
+			Iterator<String> userKeys = this.user.keys();
+			while (userKeys.hasNext()) {
+				String key = userKeys.next();
+				String value = this.user.get(key).toString();
+				userParams = userParams.concat("&cv_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
 			}
 
 			String url;
@@ -257,20 +237,20 @@ public class WoopraTracker {
 				if ( event.name != null ) {
 					eventParams = eventParams.concat("&ce_name=").concat(URLEncoder.encode(event.name, "UTF-8"));
 					@SuppressWarnings("unchecked")
-					Iterator<String> keys = event.properties.keys();
-					while (keys.hasNext()) {
-						String key = keys.next();
+					Iterator<String> eventKeys = event.properties.keys();
+					while (eventKeys.hasNext()) {
+						String key = eventKeys.next();
 						String value = event.properties.get(key).toString();
 						eventParams = eventParams.concat("&ce_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
 					}
 	
 				} else {
-					eventParams = eventParams.concat("&ce_name=pv");
+					eventParams = eventParams.concat("&ce_name=pv&ce_url=").concat(this.currentConfig.getString(WoopraTracker.CURRENT_URL));
 				}
 				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams);
 			}
 			
-			AsyncClient.getInstance().send(new URL(url));
+			AsyncClient.getInstance().send(new URL(url), headers);
 
 		} catch(Exception e) {
 			// TODO Auto-generated catch block
@@ -305,5 +285,7 @@ public class WoopraTracker {
 		return sb.toString();
 	}
 	
-
+	protected void actualizeCookie() {
+		
+	}
 }
