@@ -26,7 +26,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 			this.currentConfig.put(WoopraTrackerEE.DOMAIN, request.getServerName());
 			this.currentConfig.put(WoopraTrackerEE.COOKIE_DOMAIN, request.getServerName());
 			if(request.getHeader("HTTP_X_FORWARDED_FOR") != null) {
-				this.currentConfig.put(WoopraTrackerEE.IP_ADDRESS, request.getHeader("HTTP_X_FORWARDED_FOR"));
+				this.currentConfig.put(WoopraTrackerEE.IP_ADDRESS, request.getHeader("HTTP_X_FORWARDED_FOR").split(",")[0].trim());
 			} else {
 				this.currentConfig.put(WoopraTrackerEE.IP_ADDRESS, request.getRemoteAddr());
 			}
