@@ -1,10 +1,20 @@
 package com.woopra.java.sdk;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Random;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.woopra.json.JSONException;
+import com.woopra.json.JSONObject;
+import com.woopra.sss.test.AsyncClient;
 
 /**
  * Woopra Java SDK
@@ -14,12 +24,55 @@ import javax.servlet.http.HttpServletResponse;
  * @author Antoine Chkaiban
  * @version 2013-09-30
  */
-public class WoopraTrackerEE extends WoopraTracker {
+public class WoopraTrackerEE {
 	
+	protected static JSONObject defaultConfig;
+	protected JSONObject currentConfig;
+	protected JSONObject customConfig;
 	private HttpServletRequest request;
 	private HttpServletResponse response;
 	protected boolean hasPushed;
 	protected LinkedList<WoopraEvent> events;
+	protected JSONObject user;
+	protected boolean userUpToDate;
+	public static final String DOMAIN = "domain",
+			COOKIE_NAME = "cookie_name",
+			COOKIE_DOMAIN = "cookie_domain",
+		    COOKIE_PATH = "cookie_path",
+		    PING = "ping",
+		    PING_INTERVAL = "ping_interval",
+		    IDLE_TIMEOUT = "idle_timeout",
+		    DOWNLOAD_TRACKING = "download_tracking",
+		    OUTGOING_TRACKING = "outgoing_tracking",
+		    DOWNLOAD_PAUSE = "download_pause",
+		    OUTGOING_PAUSE = "outgoing_pause",
+		    IGNORE_QUERY_URL = "ignore_query_url",
+		    HIDE_CAMPAIGN = "hide_campaign",
+		    IP_ADDRESS = "ip_address",
+		    COOKIE_VALUE = "cookie_value",
+		    USER_AGENT = "user_agent",
+		    CURRENT_URL = "current_url";
+	
+	static {
+		WoopraTrackerEE.defaultConfig = new JSONObject();
+		WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.DOMAIN, "");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.COOKIE_NAME, "wooTracker");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.COOKIE_DOMAIN, "");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.COOKIE_PATH, "/");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.PING, true);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.PING_INTERVAL, 12000);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.IDLE_TIMEOUT, 300000);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.DOWNLOAD_TRACKING, true);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.OUTGOING_TRACKING, true);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.DOWNLOAD_PAUSE, 200);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.OUTGOING_PAUSE, 400);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.IGNORE_QUERY_URL, true);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.HIDE_CAMPAIGN, false);
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.IP_ADDRESS, "");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.COOKIE_VALUE, "");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.USER_AGENT, "");
+	    WoopraTrackerEE.defaultConfig.put(WoopraTrackerEE.CURRENT_URL, "");
+	}
 	
 	/**
 	 * Public constructor
@@ -29,33 +82,108 @@ public class WoopraTrackerEE extends WoopraTracker {
 	public WoopraTrackerEE(HttpServletRequest request, HttpServletResponse response) {
 		this.request = request;
 		this.response = response;
+		this.currentConfig = WoopraTrackerEE.defaultConfig;
 		this.currentConfig.put(WoopraTrackerEE.DOMAIN, this.getDomain());
 		this.currentConfig.put(WoopraTrackerEE.COOKIE_DOMAIN, this.getDomain());
-		String cookie = this.getCookie();
-		cookie = cookie != null ? cookie : WoopraTrackerEE.randomCookie();
-		this.currentConfig.put(WoopraTrackerEE.COOKIE_VALUE, cookie);
+		this.currentConfig.put(WoopraTrackerEE.COOKIE_VALUE, this.getCookie() != null ? this.getCookie() : WoopraTrackerEE.randomCookie());
 		this.currentConfig.put(WoopraTrackerEE.IP_ADDRESS, this.getIpAddress());
 		this.currentConfig.put(WoopraTrackerEE.USER_AGENT, this.getUserAgent());
 		this.currentConfig.put(WoopraTrackerEE.CURRENT_URL, this.getCurrentUrl());
 		this.hasPushed = false;
-		this.setWoopraCookie();
+		this.userUpToDate = true;
+		this.user = new JSONObject();
+	}
+	
+	/**
+	 * Configures the WoopraTrackerEE Object.
+	 * @param key - configuration key. All keys are accessible statically (ex: WoopraTrackerEE.IDLE_TIMEOUT)
+	 * @param value	(String, int, boolean) - configuration value
+	 * @return Configured WoopraTrackerEE
+	 */
+	public final WoopraTrackerEE config(String key, Object value) {
+		if(WoopraTrackerEE.defaultConfig.has(key)) {
+			if (WoopraTrackerEE.defaultConfig.get(key).getClass() == value.getClass()) {
+				this.currentConfig.put(key, value);
+				if(! key.equals(WoopraTrackerEE.IP_ADDRESS) && ! key.equals(WoopraTrackerEE.COOKIE_VALUE) && ! key.equals(WoopraTrackerEE.USER_AGENT) && ! key.equals(WoopraTrackerEE.CURRENT_URL)) {
+					if(this.customConfig == null) {
+						this.customConfig = new JSONObject();
+					}
+					this.customConfig.put(key, value);
+					if (key.equals(WoopraTrackerEE.COOKIE_NAME)) {
+						this.actualizeCookie();
+					}
+				}
+			}
+		}
+		return this;
+	}
+	
+	/**
+	 * Configures the WoopraTrackerEE Object.
+	 * @param data - 2D Array containing Arrays of size 2 where:<br>
+	 * 				key (String) - configuration key. All keys are accessible statically (ex: WoopraTrackerEE.IDLE_TIMEOUT)<br>
+	 * 				value (String, int, boolean) - configuration value<br>
+	 * @return Configured WoopraTrackerEE
+	 */
+	public final WoopraTrackerEE config(Object[][] data) {
+		for(Object[] keyValue : data) {
+			String key = (String) keyValue[0];
+			Object value = keyValue[1];
+			this.config(key, value);
+		}
+		return this;
+	}
+	
+	/**
+	 * Identifies the user to the tracker, so that when tracking (or pushing), the identified user is passed along to Woopra.
+	 * @param key - identification key
+	 * @param value	(String, int, boolean) - identification value
+	 * @return WoopraTrackerEE with identified user
+	 */
+	public final WoopraTrackerEE identify(String key, Object value) {
+		this.user.put(key, value);
+		this.userUpToDate = false;
+		return this;
+	}
+
+	/**
+	 * Identifies the user to the tracker, so that when tracking (or pushing), the identified user is passed along to Woopra.
+	 * @param data - 2D Array containing Arrays of size 2 where:<br>
+	 * 				key (String) - identification key<br>
+	 * 				value (String, int, boolean) - identification value<br>
+	 * @return WoopraTrackerEE with identified user
+	 */
+	public final WoopraTrackerEE identify(Object[][] data) {
+		for(Object[] keyValue : data) {
+			String key = (String) keyValue[0];
+			Object value = keyValue[1];
+			this.user.put(key, value);
+		}
+		this.userUpToDate = false;
+		return this;
 	}
 	
 	/**
 	 * Tracks a page view through the front-end.
 	 */
-	public WoopraTracker track() {
-		return this.track(new WoopraEvent());
+	public WoopraTrackerEE track() {
+		if(this.events == null) {
+			this.events = new LinkedList<WoopraEvent>();
+		}
+		this.events.add(null);
+		return this;
 	}
 	
 	/**
 	 * Tracks a page view.
-	 * @param backEndProcessing (boolean) Should the page view event be tracked through the back-end?
-	 * @return WoopraTracker
+	 * @param backEndProcessing - Should the page view event be tracked through the back-end?
+	 * @return WoopraTrackerEE
 	 */
-	public WoopraTracker track(boolean backEndProcessing) {
+	public WoopraTrackerEE track(boolean backEndProcessing) {
 		if(backEndProcessing) {
-			return super.track();
+			String userAgent = this.currentConfig.getString(WoopraTrackerEE.USER_AGENT);
+			this.woopraHttpRequest(true, null, userAgent == "" ? null : new String[] {"User-Agent: ".concat(userAgent)});
+			return this;
 		} else {
 			return this.track();
 		}
@@ -63,10 +191,10 @@ public class WoopraTrackerEE extends WoopraTracker {
 	
 	/**
 	 * Tracks a custom event through the front-end.
-	 * @param event	(WoopraEvent) the event to track
-	 * @return WoopraTracker 
+	 * @param event	- the event to track
+	 * @return WoopraTrackerEE
 	 */
-	public WoopraTracker track(WoopraEvent event) {
+	public WoopraTrackerEE track(WoopraEvent event) {
 		if(this.events == null) {
 			this.events = new LinkedList<WoopraEvent>();
 		}
@@ -78,11 +206,13 @@ public class WoopraTrackerEE extends WoopraTracker {
 	 * Tracks a custom event.
 	 * @param event	(WoopraEvent) the event to track
 	 * @param backEndProcessing (boolean) Should the event be tracked through the back-end?
-	 * @return
+	 * @return WoopraTrackerEE
 	 */
-	public WoopraTracker track(WoopraEvent event, boolean backEndProcessing) {
+	public WoopraTrackerEE track(WoopraEvent event, boolean backEndProcessing) {
 		if(backEndProcessing) {
-			return super.track(event);
+			String userAgent = this.currentConfig.getString(WoopraTrackerEE.USER_AGENT);
+			this.woopraHttpRequest(true, event, userAgent == "" ? null : new String[] {"User-Agent: ".concat(userAgent)});
+			return this;
 		} else {
 			return this.track(event);
 		}
@@ -90,26 +220,26 @@ public class WoopraTrackerEE extends WoopraTracker {
 	
 	/**
 	 * Tracks a custom event through the front-end.
-	 * @param name (String) the name of the custom event
-	 * @param properties 	(Object[][]) 2D Array containing Arrays of size 2 where:<br>
+	 * @param name - the name of the custom event
+	 * @param properties - 2D Array containing Arrays of size 2 where:<br>
 	 * 				key (String) - property name<br>
 	 * 				value (String, int, boolean) - property value<br>
-	 * @return
+	 * @return WoopraTrackerEE
 	 */
-	public WoopraTracker track(String name, Object[][] properties) {
+	public WoopraTrackerEE track(String name, Object[][] properties) {
 		return this.track(new WoopraEvent(name, properties));
 	}
 	
 	/**
 	 * Tracks a custom event.
-	 * @param name (String) the name of the custom event
-	 * @param properties 	(Object[][]) 2D Array containing Arrays of size 2 where:<br>
+	 * @param name - the name of the custom event
+	 * @param properties - 2D Array containing Arrays of size 2 where:<br>
 	 * 				key (String) - property name<br>
 	 * 				value (String, int, boolean) - property value<br>
-	 * @param backEndProcessing (boolean) Should the event be tracked through the back-end?
-	 * @return
+	 * @param backEndProcessing - Should the event be tracked through the back-end?
+	 * @return WoopraTrackerEE
 	 */
-	public WoopraTracker track(String name, Object[][] properties, boolean backEndProcessing) {
+	public WoopraTrackerEE track(String name, Object[][] properties, boolean backEndProcessing) {
 		return this.track(new WoopraEvent(name, properties), backEndProcessing);
 	}
 	
@@ -128,11 +258,14 @@ public class WoopraTrackerEE extends WoopraTracker {
 	 * Pushes the identified user to Woopra.
 	 * Please note that the identified user is automatically pushed with any tracking event.
 	 * Therefore, this method is useful if you need to identify a user without tracking any event.
-	 * @param backEndProcessing (boolean) Should the identification be pushed through the back-end?
+	 * @param backEndProcessing - Should the identification be pushed through the back-end?
 	 */
 	public void push(boolean backEndProcessing) {
 		if(backEndProcessing) {
-			super.push();
+			if (!this.userUpToDate) {
+				String userAgent = this.currentConfig.getString(WoopraTrackerEE.USER_AGENT);
+				this.woopraHttpRequest(false, null, userAgent == "" ? null : new String[] {"User-Agent: ".concat(userAgent)});
+			}
 		} else {
 			this.push();
 		}
@@ -141,7 +274,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 	/**
 	 * Returns the JavaScript code for configuring, identifying, tracking, and pushing.
 	 * Call this function after all front-end actions, and place its return value in your page's header.
-	 * @return (String) the JavaScript code for all front-end tracking.
+	 * @return the JavaScript code for all front-end tracking.
 	 */
 	public String jsCode() {
 		String jsCode = "\n";
@@ -157,6 +290,75 @@ public class WoopraTrackerEE extends WoopraTracker {
 		jsCode = jsCode.concat("</script>\n");
 		jsCode = jsCode.concat("<!-- Woopra code ends here -->\n");
 		return jsCode;
+	}
+	
+	/**
+	 * Sets the current cookie configuration in the user's browser (COOKIE_NAME, COOKIE_DOMAIN, COOKIE_PATH, COOKIE_VALUE)
+	 * If a cookie was already in the browser, this method will override it with a new one that expires in 2 years.
+	 * If there was no cookie in the browser, a random one will be generated and sent to Woopra.
+	 * Therefore, in order for the user to be recognized in future visits, the cookie should be set in the user's browser.
+	 */
+	public void setWoopraCookie() {
+		Cookie cookie = new Cookie( (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_NAME), (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_VALUE));
+		cookie.setMaxAge(60*60*24*365*2);
+		this.response.addCookie(cookie);
+	}
+	
+	private void woopraHttpRequest(boolean isTracking, WoopraEvent event, String[] headers) {
+		if (this.currentConfig.get(WoopraTrackerEE.DOMAIN).equals("")) {
+			return;
+		}
+		try {
+			String baseUrl = "http://www.woopra.com/track/";
+			String configParams = "?host=".concat(URLEncoder.encode((String) this.currentConfig.get(WoopraTrackerEE.DOMAIN), "UTF-8"));
+			if (! this.currentConfig.getString(WoopraTrackerEE.COOKIE_VALUE).equals("")) {
+				configParams = configParams.concat("&cookie=").concat(URLEncoder.encode( (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_VALUE), "UTF-8"));
+			}
+			if (! this.currentConfig.getString(WoopraTrackerEE.IP_ADDRESS).equals("")) {
+				configParams = configParams.concat("&ip=").concat(URLEncoder.encode( (String) this.currentConfig.get(WoopraTrackerEE.IP_ADDRESS), "UTF-8"));
+			}
+			configParams = configParams.concat("&timeout=").concat(URLEncoder.encode(this.currentConfig.get(WoopraTrackerEE.IDLE_TIMEOUT).toString(), "UTF-8"));
+			String userParams = "";
+			@SuppressWarnings("unchecked")
+			Iterator<String> userKeys = this.user.keys();
+			while (userKeys.hasNext()) {
+				String key = userKeys.next();
+				String value = this.user.get(key).toString();
+				userParams = userParams.concat("&cv_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
+			}
+			String url;
+			if ( ! isTracking ) {
+				url = baseUrl.concat("identify/").concat(configParams).concat(userParams);
+			} else {
+				String eventParams = "";
+				if ( event != null ) {
+					eventParams = eventParams.concat("&ce_name=").concat(URLEncoder.encode(event.name, "UTF-8"));
+					@SuppressWarnings("unchecked")
+					Iterator<String> eventKeys = event.properties.keys();
+					while (eventKeys.hasNext()) {
+						String key = eventKeys.next();
+						String value = event.properties.get(key).toString();
+						eventParams = eventParams.concat("&ce_").concat(URLEncoder.encode(key, "UTF-8")).concat("=").concat(URLEncoder.encode(value, "UTF-8"));
+					}
+				} else {
+					eventParams = eventParams.concat("&ce_name=pv");
+					if (! this.currentConfig.getString(WoopraTrackerEE.CURRENT_URL).equals("")) {
+						eventParams = eventParams.concat("&ce_url=").concat(this.currentConfig.getString(WoopraTrackerEE.CURRENT_URL));
+					}
+				}
+				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams);
+			}
+			AsyncClient.getInstance().send(new URL(url), headers);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	private String printJavaScriptConfiguration() {
@@ -181,7 +383,7 @@ public class WoopraTrackerEE extends WoopraTracker {
 		String jsEvents = "";
 		if(this.events != null) {
 			for(WoopraEvent event : this.events){
-			   if(event.name == null) {
+			   if(event == null) {
 				   jsEvents = jsEvents.concat("   woopra.track();\n");
 			   } else {
 				   jsEvents = jsEvents.concat("   woopra.track('".concat(event.name).concat("', ").concat(event.toString()).concat(");\n"));
@@ -222,16 +424,20 @@ public class WoopraTrackerEE extends WoopraTracker {
 		return request.getServerName();
 	}
 	
-	protected void actualizeCookie() {
+	private void actualizeCookie() {
 		String cookie = this.getCookie();
 		if (cookie != null) {
 			this.currentConfig.put(WoopraTrackerEE.COOKIE_VALUE, cookie);
 		}
 	}
 	
-	public void setWoopraCookie() {
-		Cookie cookie = new Cookie( (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_NAME), (String) this.currentConfig.get(WoopraTrackerEE.COOKIE_VALUE));
-		cookie.setMaxAge(60*60*24*365*2);
-		this.response.addCookie(cookie);
+	private static String randomCookie() {
+		String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		Random rnd = new Random();
+		StringBuilder sb = new StringBuilder( 12 );
+		for( int i = 0; i < 12; i++ ) {
+			sb.append( AB.charAt( rnd.nextInt(AB.length()) ) );
+		}
+		return sb.toString();
 	}
 }
