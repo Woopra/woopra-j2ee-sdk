@@ -24,10 +24,10 @@ import com.woopra.sss.test.AsyncClient;
  * @author Antoine Chkaiban
  * @version 2013-09-30
  */
-public class WoopraTrackerEE {
+public class WoopraTracker {
 	
 	//TODO: pass param SDK_ID to front-end tracking too
-	private static String SDK_ID = "java_ee_sdk";
+	private static String SDK_ID = "j2ee";
 	protected static JSONObject defaultConfig;
 	protected JSONObject currentConfig;
 	protected JSONObject customConfig;
@@ -330,7 +330,7 @@ public class WoopraTrackerEE {
 			}
 			String url;
 			if ( ! isTracking ) {
-				url = baseUrl.concat("identify/").concat(configParams).concat(userParams).concat("&app=").concat(WoopraTrackerEE.SDK_ID);
+				url = baseUrl.concat("identify/").concat(configParams).concat(userParams).concat("&ce__w_app=").concat(WoopraTrackerEE.SDK_ID);
 			} else {
 				String eventParams = "";
 				if ( event != null ) {
@@ -348,7 +348,7 @@ public class WoopraTrackerEE {
 						eventParams = eventParams.concat("&ce_url=").concat(this.currentConfig.getString(WoopraTrackerEE.CURRENT_URL));
 					}
 				}
-				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams).concat("&app=").concat(WoopraTrackerEE.SDK_ID);
+				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams).concat("&ce__w_app=").concat(WoopraTrackerEE.SDK_ID);
 			}
 			AsyncClient.getInstance().send(new URL(url), headers);
 		} catch (JSONException e) {

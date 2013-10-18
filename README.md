@@ -1,6 +1,6 @@
 Track customers directly in the J2EE Web Framework using Woopra's J2EE SDK
 
-The purpose of this SDK is to allow our customers who have Java-based servers to track their users by writing only Java code. Tracking directly in Java will allow you to decide whether you want to track your users:
+The purpose of this SDK is to allow our customers who have servers running the J2EE Framework to track their users by writing only Java code. Tracking directly in Java will allow you to decide whether you want to track your users:
 - through the front-end: after configuring the tracker, identifying the user, and tracking page views and events in Java, the SDK will generate the corresponding JavaScript code, and by passing this code as an attribute of your request (examples will be shown below), you will be able to print that code in your JSP page's header.
 - through the back-end: after configuring the tracker & identifying the user, add the optional parameter true to the methods <code>track</code> or <code>push</code>, and the Java tracker will handle sending the data to Woopra by making HTTP Requests. By doing that, the client is never involved in the tracking process.
 
@@ -93,12 +93,3 @@ woopra.setWoopraCookie(response);
 this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
 // where response is the instance of HttpServletResponse
 ```
-If you are using another Java Web Framework than J2EE, you should use the WoopraTracker class instead of the WoopraTrackerEE class. The constructor of WoopraTracker doesn't require an instance of HttpServletRequest. However, for the tracker to work properly, you should configure manually the domain, the cookieDomain, the cookieValue, and the ipAddress of the user being tracked:
-``` python
-woopra.config({WoopraTracker.DOMAIN : "mybusiness.com",
-   WoopraTracker.COOKIE_DOMAIN : "mybusiness.com",
-   WoopraTracker.COOKIE_VALUE : "COOKIEVALUE",
-   WoopraTracker.IP_ADDRESS : "0.0.0.0"
-});
-```
-Instead of calling the setWoopraCookie(response) method to set the Woopra cookie on the user's browser, you should set it manually (this step depends on the Java-based Web Framework you are using).
