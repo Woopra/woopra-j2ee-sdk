@@ -89,7 +89,6 @@ woopra.track("play", new Object[][] {
 Finally, if you wish to track your users only through the back-end, you should set the cookie on your user's browser. However, if you are planning to also use front-end tracking, don't even bother with that step, the JavaScript tracker will handle it for you.
 ``` java
 request.setAttribute("woopraCode", woopra.jsCode());
-woopra.setWoopraCookie(response);
+woopra.setWoopraCookie();
 this.getServletContext().getRequestDispatcher("/WEB-INF/homepage.jsp").forward(request, response);
-// where response is the instance of HttpServletResponse
 ```
