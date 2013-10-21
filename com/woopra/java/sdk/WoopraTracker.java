@@ -332,7 +332,7 @@ public class WoopraTracker {
 			}
 			String url;
 			if ( ! isTracking ) {
-				url = baseUrl.concat("identify/").concat(configParams).concat(userParams).concat("&app=").concat(WoopraTracker.SDK_ID);
+				url = baseUrl.concat("identify/").concat(configParams).concat(userParams).concat("&ce__w_app=").concat(WoopraTracker.SDK_ID);
 			} else {
 				String eventParams = "";
 				if ( event != null ) {
@@ -350,7 +350,7 @@ public class WoopraTracker {
 						eventParams = eventParams.concat("&ce_url=").concat(this.currentConfig.getString(WoopraTracker.CURRENT_URL));
 					}
 				}
-				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams).concat("&app=").concat(WoopraTracker.SDK_ID);
+				url = baseUrl.concat("ce/").concat(configParams).concat(userParams).concat(eventParams).concat("&ce__w_app=").concat(WoopraTracker.SDK_ID);
 			}
 			AsyncClient.getInstance().send(new URL(url), headers);
 		} catch (JSONException e) {
